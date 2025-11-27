@@ -78,12 +78,9 @@ export const signin = async (req, res, next) => {
     const cookieOptions = {
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      secure: process.env.NODE_ENV === 'production',
     };
-
-    if (process.env.NODE_ENV === 'production') {
-      cookieOptions.sameSite = 'none';
-      cookieOptions.secure = true;
-    }
 
     res.status(200).cookie('access_token', token, cookieOptions).json({
       ...rest,
@@ -167,12 +164,9 @@ export const google = async (req, res, next) => {
       const cookieOptions = {
         httpOnly: true,
         maxAge: 7 * 24 * 60 * 60 * 1000,
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        secure: process.env.NODE_ENV === 'production',
       };
-
-      if (process.env.NODE_ENV === 'production') {
-        cookieOptions.sameSite = 'none';
-        cookieOptions.secure = true;
-      }
 
       // Return with proper camelCase formatting
       const responseData = {
@@ -233,12 +227,9 @@ export const google = async (req, res, next) => {
       const cookieOptions = {
         httpOnly: true,
         maxAge: 7 * 24 * 60 * 60 * 1000,
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        secure: process.env.NODE_ENV === 'production',
       };
-
-      if (process.env.NODE_ENV === 'production') {
-        cookieOptions.sameSite = 'none';
-        cookieOptions.secure = true;
-      }
 
       // Return with proper camelCase formatting
       const responseData = {
