@@ -40,17 +40,21 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow requests with no origin (mobile apps, Postman, etc.)
-      if (!origin) return callback(null, true);
-      
-      // Check if origin is in allowed list OR ends with .vercel.app
-      if (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
-        callback(null, true);
-      } else {
-        console.log('❌ Blocked origin:', origin);
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
+  if (!origin) return callback(null, true);
+
+  const allowed = [
+    ...allowedOrigins,
+    /\.vercel\.app$/  // allow ANY vercel deployment
+  ];
+
+  if (allowed.some((o) => (o instanceof RegExp ? o.test(origin) : o === origin))) {
+    callback(null, true);
+  } else {
+    console.log("❌ Blocked Origin:", origin);
+    callback(new Error("CORS Blocked"));
+  }
+},
+
     credentials: true, // ✅ CRITICAL: Allow cookies
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
