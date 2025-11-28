@@ -29,13 +29,12 @@ if (process.env.NODE_ENV !== 'production') {
 
 const app = express();
 
-// ✅ FIXED CORS CONFIGURATION
+// ✅ CRITICAL FIX: CORS Configuration MUST be BEFORE other middleware
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
   'https://blog.100jsprojects.com',
   'https://mern-blog-client-steel.vercel.app',
-  'https://mern-blog-frontend-6o5rzitk2-amir-sohel-sardars-projects.vercel.app',
 ];
 
 app.use(
@@ -48,14 +47,19 @@ app.use(
       if (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
         callback(null, true);
       } else {
+        console.log('❌ Blocked origin:', origin);
         callback(new Error('Not allowed by CORS'));
       }
     },
-    credentials: true,
+    credentials: true, // ✅ CRITICAL: Allow cookies
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-requested-with'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    exposedHeaders: ['set-cookie'], // ✅ CRITICAL: Expose cookies
   })
 );
+
+// ✅ Handle preflight requests
+app.options('*', cors());
 
 // Test Supabase connection
 const testSupabaseConnection = async () => {
@@ -70,7 +74,7 @@ const testSupabaseConnection = async () => {
   }
 };
 
-// Middleware
+// Middleware - ORDER MATTERS!
 app.use(express.json());
 app.use(cookieParser());
 
@@ -106,6 +110,20 @@ app.get('/api/debug-db', async (req, res) => {
       timestamp: new Date(),
     });
   }
+});
+
+// ✅ Test cookie endpoint
+app.get('/api/test-cookie', (req, res) => {
+  res.cookie('test_cookie', 'test_value', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    maxAge: 24 * 60 * 60 * 1000,
+  });
+  res.json({ 
+    message: 'Cookie set successfully',
+    cookies: req.cookies 
+  });
 });
 
 // Routes

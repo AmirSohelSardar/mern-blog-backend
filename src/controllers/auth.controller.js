@@ -3,6 +3,15 @@ import bcryptjs from 'bcryptjs';
 import { errorHandler } from '../utils/error.js';
 import jwt from 'jsonwebtoken';
 
+// ✅ Centralized cookie options
+const getCookieOptions = () => ({
+  httpOnly: true,
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+  secure: process.env.NODE_ENV === 'production',
+  path: '/', // ✅ CRITICAL: Ensure cookie is available on all paths
+});
+
 export const signup = async (req, res, next) => {
   const { username, email, password } = req.body;
 
@@ -75,22 +84,20 @@ export const signin = async (req, res, next) => {
 
     const { password: pass, ...rest } = validUser;
 
-    const cookieOptions = {
-      httpOnly: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      secure: process.env.NODE_ENV === 'production',
-    };
-
-    res.status(200).cookie('access_token', token, cookieOptions).json({
-      ...rest,
-      _id: rest.id,
-      isAdmin: rest.is_admin,
-      profilePicture: rest.profile_picture,
-      authProvider: rest.auth_provider,
-      createdAt: rest.created_at,
-      updatedAt: rest.updated_at,
-    });
+    console.log('✅ Setting cookie for signin');
+    
+    res
+      .status(200)
+      .cookie('access_token', token, getCookieOptions())
+      .json({
+        ...rest,
+        _id: rest.id,
+        isAdmin: rest.is_admin,
+        profilePicture: rest.profile_picture,
+        authProvider: rest.auth_provider,
+        createdAt: rest.created_at,
+        updatedAt: rest.updated_at,
+      });
   } catch (error) {
     next(error);
   }
@@ -161,13 +168,6 @@ export const google = async (req, res, next) => {
       
       const { password, ...rest } = updatedUser;
 
-      const cookieOptions = {
-        httpOnly: true,
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        secure: process.env.NODE_ENV === 'production',
-      };
-
       // Return with proper camelCase formatting
       const responseData = {
         ...rest,
@@ -180,8 +180,12 @@ export const google = async (req, res, next) => {
       };
 
       console.log('🟣 Sending response with profilePicture:', responseData.profilePicture);
+      console.log('✅ Setting cookie for Google OAuth (existing user)');
 
-      return res.status(200).cookie('access_token', token, cookieOptions).json(responseData);
+      return res
+        .status(200)
+        .cookie('access_token', token, getCookieOptions())
+        .json(responseData);
     } else {
       console.log('🟡 New user, creating account');
       
@@ -224,13 +228,6 @@ export const google = async (req, res, next) => {
       
       const { password, ...rest } = newUser;
 
-      const cookieOptions = {
-        httpOnly: true,
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        secure: process.env.NODE_ENV === 'production',
-      };
-
       // Return with proper camelCase formatting
       const responseData = {
         ...rest,
@@ -243,8 +240,12 @@ export const google = async (req, res, next) => {
       };
 
       console.log('🟣 Sending response with profilePicture:', responseData.profilePicture);
+      console.log('✅ Setting cookie for Google OAuth (new user)');
 
-      return res.status(200).cookie('access_token', token, cookieOptions).json(responseData);
+      return res
+        .status(200)
+        .cookie('access_token', token, getCookieOptions())
+        .json(responseData);
     }
   } catch (error) {
     console.error('❌ Google OAuth error:', error);
