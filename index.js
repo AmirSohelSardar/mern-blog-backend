@@ -1,16 +1,16 @@
-// ================== HIDE LOGS IN PRODUCTION ==================
-if (process.env.NODE_ENV === "production") {
-  const allowed = ["Server running", "Connected to Supabase"];
+// // ================== HIDE LOGS IN PRODUCTION ==================
+// if (process.env.NODE_ENV === "production") {
+//   const allowed = ["Server running", "Connected to Supabase"];
 
-  const originalLog = console.log;
-  console.log = function (...args) {
-    const msg = args.join(" ");
-    if (allowed.some(a => msg.includes(a))) {
-      originalLog(...args);
-    }
-  };
-}
-// ==============================================================
+//   const originalLog = console.log;
+//   console.log = function (...args) {
+//     const msg = args.join(" ");
+//     if (allowed.some(a => msg.includes(a))) {
+//       originalLog(...args);
+//     }
+//   };
+// }
+// // ==============================================================
 
 import express from 'express';
 import cors from 'cors';
